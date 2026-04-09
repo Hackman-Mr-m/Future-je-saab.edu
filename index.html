@@ -6,252 +6,170 @@
     <title>Admin Panel | Defence Civil Material Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase SDKs -->
+    
+    <!-- Firebase SDKs (v9 Compat Mode) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #0f172a;
-            color: #f8fafc;
-            overflow-x: hidden;
-        }
-
-        .glass {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .sidebar-link.active {
-            background: rgba(59, 130, 246, 0.2);
-            border-left: 4px solid #3b82f6;
-        }
-
-        /* CAPTCHA Styles */
-        .captcha-container {
-            width: 100%;
-            height: 50px;
-            background: #1e293b;
-            border-radius: 8px;
-            position: relative;
-            margin-top: 15px;
-            border: 1px solid #334155;
-            overflow: hidden;
-        }
-        .captcha-track {
-            height: 100%;
-            width: 0;
-            background: rgba(59, 130, 246, 0.3);
-            position: absolute;
-        }
-        .captcha-slider {
-            width: 50px;
-            height: 100%;
-            background: #3b82f6;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            position: absolute;
-            z-index: 10;
-            border-radius: 6px;
-            transition: background 0.3s;
-        }
-        .captcha-text {
-            position: absolute;
-            width: 100%;
-            text-align: center;
-            line-height: 50px;
-            font-size: 14px;
-            color: #94a3b8;
-            pointer-events: none;
-        }
-        .captcha-success { background: #10b981 !important; }
-
-        .loader { border-top-color: #3b82f6; animation: spinner 1.5s linear infinite; }
-        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Poppins', sans-serif; background: #0f172a; color: #f1f5f9; overflow-x: hidden; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-link.active { background: #2563eb; color: white; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); }
+        .loader { border-top-color: #3b82f6; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="antialiased">
 
-    <!-- LOGIN OVERLAY -->
-    <div id="login-section" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950 px-4">
-        <div class="glass w-full max-w-md p-8 rounded-2xl shadow-2xl">
-            <div class="text-center mb-6">
-                <i class="fas fa-shield-halved text-5xl text-blue-500 mb-4"></i>
-                <h1 class="text-2xl font-bold">Admin Login</h1>
-                <p class="text-slate-400">Defence / Civil Material Hub</p>
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950 px-4">
+        <div class="glass w-full max-w-md p-10 rounded-3xl text-center">
+            <div class="mb-6">
+                <div class="w-20 h-20 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-lg shadow-blue-500/30">
+                    <i class="fas fa-shield-halved text-4xl text-white"></i>
+                </div>
+                <h1 class="text-3xl font-bold">Admin Hub</h1>
+                <p class="text-slate-400 mt-2">Defence & Civil Materials</p>
             </div>
-            
-            <form id="login-form" class="space-y-4">
-                <div>
-                    <label class="block text-sm mb-1">Email Address</label>
-                    <input type="email" id="login-email" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm mb-1">Password</label>
-                    <input type="password" id="login-password" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-
-                <!-- SLIDER CAPTCHA -->
-                <div class="captcha-container" id="captcha-container">
-                    <div class="captcha-text">Slide to Verify</div>
-                    <div class="captcha-track" id="captcha-track"></div>
-                    <div class="captcha-slider" id="captcha-slider">
-                        <i class="fas fa-angles-right"></i>
-                    </div>
-                </div>
-
-                <button type="submit" id="login-btn" disabled class="w-full bg-slate-600 cursor-not-allowed text-white font-bold py-2 rounded-lg transition duration-300 mt-4">
-                    Login to Dashboard
-                </button>
-            </form>
+            <button onclick="loginWithGoogle()" class="w-full bg-white text-slate-900 font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-3 hover:bg-slate-100 transition-all duration-300">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" class="w-6" alt="Google">
+                Continue with Google
+            </button>
+            <p id="auth-error" class="text-red-500 mt-4 text-sm hidden"></p>
         </div>
     </div>
 
-    <!-- MAIN DASHBOARD -->
-    <div id="admin-content" class="hidden min-h-screen flex">
+    <!-- MAIN DASHBOARD CONTENT -->
+    <div id="admin-panel" class="hidden min-h-screen flex">
         
         <!-- SIDEBAR -->
-        <aside class="w-64 glass border-r border-slate-800 fixed h-full lg:static z-50 transition-transform -translate-x-full lg:translate-x-0" id="sidebar">
-            <div class="p-6 flex justify-between items-center">
-                <div>
-                    <h2 class="text-xl font-bold text-blue-400">DEFENCE HUB</h2>
-                    <p class="text-[10px] uppercase text-slate-500 tracking-widest">Admin Control</p>
-                </div>
-                <button class="lg:hidden text-slate-400" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
+        <aside id="sidebar" class="w-72 glass border-r border-slate-800 fixed h-full lg:static z-50 transition-transform -translate-x-full lg:translate-x-0">
+            <div class="p-8">
+                <h2 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">HUB PANEL</h2>
             </div>
-            <nav class="mt-4 px-4 space-y-2">
-                <a href="#" onclick="showSection('dashboard')" class="sidebar-link active flex items-center space-x-3 p-3 rounded-lg">
-                    <i class="fas fa-chart-line w-5"></i> <span>Dashboard</span>
-                </a>
-                <a href="#" onclick="showSection('add-material')" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg">
-                    <i class="fas fa-plus-circle w-5"></i> <span>Add Material</span>
-                </a>
-                <a href="#" onclick="showSection('manage-materials')" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg">
-                    <i class="fas fa-folder-open w-5"></i> <span>Manage Materials</span>
-                </a>
-                <a href="#" onclick="showSection('analytics')" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg">
-                    <i class="fas fa-users w-5"></i> <span>Analytics</span>
-                </a>
-                <button onclick="logout()" class="w-full flex items-center space-x-3 p-3 mt-10 text-red-400 hover:bg-red-900/20 rounded-lg">
-                    <i class="fas fa-sign-out-alt w-5"></i> <span>Logout</span>
+            <nav class="px-4 space-y-2">
+                <button onclick="showSection('dashboard')" class="sidebar-link active w-full flex items-center gap-4 p-4 rounded-xl transition-all">
+                    <i class="fas fa-grid-2"></i> Dashboard
+                </button>
+                <button onclick="showSection('add')" class="sidebar-link w-full flex items-center gap-4 p-4 rounded-xl transition-all">
+                    <i class="fas fa-plus-circle"></i> Add Material
+                </button>
+                <button onclick="showSection('manage')" class="sidebar-link w-full flex items-center gap-4 p-4 rounded-xl transition-all">
+                    <i class="fas fa-layer-group"></i> Manage All
+                </button>
+                <button onclick="logout()" class="w-full flex items-center gap-4 p-4 rounded-xl text-red-400 hover:bg-red-500/10 mt-10">
+                    <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
             </nav>
         </aside>
 
-        <!-- MAIN CONTENT AREA -->
-        <main class="flex-1 h-screen overflow-y-auto p-6">
-            <header class="flex justify-between items-center mb-8">
-                <button class="lg:hidden text-2xl" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-                <h2 id="section-title" class="text-2xl font-bold">Dashboard</h2>
-                <div class="flex items-center space-x-3">
-                    <span id="admin-email-display" class="hidden md:block text-sm text-slate-400"></span>
-                    <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold">A</div>
+        <!-- MAIN AREA -->
+        <main class="flex-1 h-screen overflow-y-auto p-6 lg:p-10">
+            <!-- Top Nav -->
+            <div class="flex justify-between items-center mb-10">
+                <button class="lg:hidden text-2xl" onclick="toggleSidebar()"><i class="fas fa-bars-staggered"></i></button>
+                <h2 id="page-title" class="text-2xl font-bold">Overview</h2>
+                <div id="user-info" class="flex items-center gap-3 glass py-2 px-4 rounded-full">
+                    <img id="admin-photo" src="" class="w-8 h-8 rounded-full border-2 border-blue-500">
+                    <span id="admin-name" class="text-sm font-medium">Admin</span>
                 </div>
-            </header>
+            </div>
 
-            <!-- SECTION: DASHBOARD -->
-            <div id="section-dashboard" class="content-section">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="glass p-6 rounded-2xl">
-                        <p class="text-slate-400 text-sm">Total Materials</p>
-                        <h3 id="stat-total-materials" class="text-3xl font-bold mt-1">0</h3>
+            <!-- DASHBOARD SECTION -->
+            <div id="section-dashboard" class="content-section space-y-8">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="glass p-6 rounded-3xl">
+                        <i class="fas fa-file-pdf text-blue-500 text-3xl mb-4"></i>
+                        <p class="text-slate-400 text-sm">Materials</p>
+                        <h3 id="stat-count" class="text-3xl font-bold">0</h3>
                     </div>
-                    <div class="glass p-6 rounded-2xl">
-                        <p class="text-slate-400 text-sm">Users</p>
-                        <h3 id="stat-total-users" class="text-3xl font-bold mt-1">0</h3>
+                    <div class="glass p-6 rounded-3xl">
+                        <i class="fas fa-eye text-emerald-500 text-3xl mb-4"></i>
+                        <p class="text-slate-400 text-sm">Total Views</p>
+                        <h3 id="stat-views" class="text-3xl font-bold">0</h3>
                     </div>
-                    <div class="glass p-6 rounded-2xl">
+                    <div class="glass p-6 rounded-3xl">
+                        <i class="fas fa-download text-orange-500 text-3xl mb-4"></i>
                         <p class="text-slate-400 text-sm">Downloads</p>
-                        <h3 id="stat-total-downloads" class="text-3xl font-bold mt-1">0</h3>
+                        <h3 id="stat-downloads" class="text-3xl font-bold">0</h3>
                     </div>
-                    <div class="glass p-6 rounded-2xl">
-                        <p class="text-slate-400 text-sm">Views</p>
-                        <h3 id="stat-total-views" class="text-3xl font-bold mt-1">0</h3>
+                    <div class="glass p-6 rounded-3xl">
+                        <i class="fas fa-chart-line text-purple-500 text-3xl mb-4"></i>
+                        <p class="text-slate-400 text-sm">Daily Traffic</p>
+                        <h3 class="text-3xl font-bold">Live</h3>
                     </div>
                 </div>
-                <div class="glass rounded-2xl overflow-hidden">
-                    <h3 class="p-6 font-bold border-b border-slate-800">Recent Uploads</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <tbody id="recent-uploads-body"></tbody>
-                        </table>
+
+                <div class="glass rounded-3xl p-6">
+                    <h3 class="text-xl font-bold mb-6">Recent Activities</h3>
+                    <div id="recent-list" class="space-y-4">
+                        <!-- Items via JS -->
                     </div>
                 </div>
             </div>
 
-            <!-- SECTION: ADD MATERIAL -->
-            <div id="section-add-material" class="content-section hidden">
-                <div class="glass max-w-4xl mx-auto p-6 md:p-8 rounded-2xl">
-                    <form id="material-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- ADD / EDIT SECTION -->
+            <div id="section-add" class="content-section hidden">
+                <div class="glass max-w-3xl mx-auto p-8 rounded-3xl">
+                    <form id="material-form" class="space-y-5">
                         <input type="hidden" id="edit-id">
-                        <div class="md:col-span-2">
-                            <label class="block text-sm mb-1">Title</label>
-                            <input type="text" id="m-title" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 outline-none">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-2">Material Title (e.g., SSC GD History Notes)</label>
+                            <input type="text" id="m-title" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-400 mb-2">Format</label>
+                                <select id="m-format" class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 outline-none">
+                                    <option value="PDF">PDF Document</option>
+                                    <option value="Notes">Digital Notes</option>
+                                    <option value="PYQ">Previous Year Paper</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-400 mb-2">Target Year</label>
+                                <input type="number" id="m-year" placeholder="2024" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 outline-none">
+                            </div>
                         </div>
                         <div>
-                            <label class="block text-sm mb-1">Category</label>
-                            <select id="m-category" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 outline-none">
-                                <option>Army Agniveer</option><option>SSC GD</option><option>SSC JE</option>
-                                <option>RRB JE</option><option>JKSSB JE</option><option>Merchant Navy</option><option>TA Army</option>
-                            </select>
+                            <label class="block text-sm font-medium text-slate-400 mb-2">Google Drive URL (View/Download Link)</label>
+                            <input type="url" id="m-link" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 outline-none">
                         </div>
                         <div>
-                            <label class="block text-sm mb-1">Type</label>
-                            <select id="m-type" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 outline-none">
-                                <option>PDF</option><option>Notes</option><option>PYQ</option>
-                            </select>
+                            <label class="block text-sm font-medium text-slate-400 mb-2">Thumbnail Image URL</label>
+                            <input type="url" id="m-thumbnail" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 outline-none">
                         </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-sm mb-1">Drive Link</label>
-                            <input type="url" id="m-link" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 outline-none">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-sm mb-1">Thumbnail URL</label>
-                            <input type="url" id="m-thumbnail" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 outline-none">
-                        </div>
-                        <button type="submit" id="btn-submit" class="md:col-span-2 bg-blue-600 py-3 rounded-lg font-bold flex items-center justify-center space-x-2">
-                            <span id="submit-text">Upload Material</span>
+                        <button type="submit" id="submit-btn" class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-xl font-bold shadow-lg transition-all flex items-center justify-center gap-3">
+                            <span id="btn-text">Publish Material</span>
                             <div id="loader" class="hidden loader w-5 h-5 border-2 border-white rounded-full"></div>
                         </button>
                     </form>
                 </div>
             </div>
 
-            <!-- SECTION: MANAGE -->
-            <div id="section-manage-materials" class="content-section hidden">
-                <div class="flex flex-col md:row gap-4 mb-6">
-                    <input type="text" oninput="filterMaterials()" id="search-input" placeholder="Search..." class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-4 py-2">
+            <!-- MANAGE SECTION -->
+            <div id="section-manage" class="content-section hidden">
+                <div class="mb-6">
+                    <input type="text" id="search" oninput="renderManageGrid()" placeholder="Search by title..." class="w-full max-w-md bg-slate-800 border border-slate-700 rounded-xl px-5 py-3 outline-none">
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="materials-grid"></div>
+                <div id="manage-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <!-- Cards via JS -->
+                </div>
             </div>
 
-            <!-- SECTION: ANALYTICS -->
-            <div id="section-analytics" class="content-section hidden">
-                <div class="glass p-6 rounded-2xl overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead><tr class="text-slate-400 border-b border-slate-800"><th class="p-4">Material</th><th class="p-4">Views</th><th class="p-4">Downloads</th></tr></thead>
-                        <tbody id="analytics-table-body"></tbody>
-                    </table>
-                </div>
-            </div>
         </main>
     </div>
 
-    <!-- TOAST -->
-    <div id="toast" class="fixed bottom-10 right-10 transform translate-y-20 opacity-0 transition-all duration-300 glass border-l-4 border-blue-500 px-6 py-4 rounded-lg z-[200]">
-        <p id="toast-msg"></p>
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-10 right-10 transform translate-y-32 opacity-0 transition-all duration-500 glass border-l-4 border-blue-500 p-4 rounded-xl z-[200]">
+        <p id="toast-msg" class="font-medium"></p>
     </div>
 
     <script>
-        // FIREBASE CONFIG (ADD YOURS HERE)
+        // --- CONFIGURATION ---
         const firebaseConfig = {
   apiKey: "AIzaSyD3HWJgHHPDlVFRgzNXfLzp415HlnBYLac",
   authDomain: "defence-civil-hub.firebaseapp.com",
@@ -265,214 +183,176 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+        const provider = new firebase.auth.GoogleAuthProvider();
 
-        // 1. CAPTCHA LOGIC
-        const slider = document.getElementById('captcha-slider');
-        const container = document.getElementById('captcha-container');
-        const track = document.getElementById('captcha-track');
-        const loginBtn = document.getElementById('login-btn');
-        let isDragging = false;
-        let isVerified = false;
+        let materials = [];
+        let isEditing = false;
 
-        const startDrag = (e) => { if (!isVerified) isDragging = true; };
-        const moveDrag = (e) => {
-            if (!isDragging || isVerified) return;
-            const containerRect = container.getBoundingClientRect();
-            const x = (e.touches ? e.touches[0].clientX : e.clientX) - containerRect.left;
-            let pos = Math.max(0, Math.min(x - 25, containerRect.width - 50));
-            slider.style.left = pos + 'px';
-            track.style.width = pos + 'px';
-
-            if (pos >= containerRect.width - 55) {
-                isVerified = true;
-                isDragging = false;
-                slider.classList.add('captcha-success');
-                slider.innerHTML = '<i class="fas fa-check"></i>';
-                loginBtn.disabled = false;
-                loginBtn.classList.remove('bg-slate-600', 'cursor-not-allowed');
-                loginBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
-                document.querySelector('.captcha-text').innerText = "Verified ✅";
-            }
-        };
-        const endDrag = () => {
-            if (!isVerified) {
-                isDragging = false;
-                slider.style.left = '0px';
-                track.style.width = '0px';
-            }
-        };
-
-        slider.addEventListener('mousedown', startDrag);
-        window.addEventListener('mousemove', moveDrag);
-        window.addEventListener('mouseup', endDrag);
-        slider.addEventListener('touchstart', startDrag);
-        window.addEventListener('touchmove', moveDrag);
-        window.addEventListener('touchend', endDrag);
-
-        // 2. SIDEBAR TOGGLE & AUTO-HIDE
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+        // --- AUTHENTICATION ---
+        function loginWithGoogle() {
+            auth.signInWithPopup(provider).catch(err => {
+                document.getElementById('auth-error').innerText = err.message;
+                document.getElementById('auth-error').classList.remove('hidden');
+            });
         }
 
-        // 3. UI SECTION HANDLING
-        function showSection(sectionId) {
-            // Hide all sections
-            document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden'));
-            document.getElementById('section-' + sectionId).classList.remove('hidden');
-            
-            // Sidebar active UI
-            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-
-            // --- FIX: Auto-hide sidebar on mobile click ---
-            if (window.innerWidth < 1024) {
-                toggleSidebar();
-            }
-
-            // Reset forms if not editing
-            if(sectionId !== 'add-material') {
-                isEditing = false;
-                document.getElementById('material-form').reset();
-                document.getElementById('submit-text').innerText = "Upload Material";
-            }
-        }
-
-        // 4. AUTH & CORE LOGIC
         auth.onAuthStateChanged(user => {
             if (user) {
-                document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('admin-content').classList.remove('hidden');
-                document.getElementById('admin-email-display').innerText = user.email;
-                initRealtime();
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('admin-panel').classList.remove('hidden');
+                document.getElementById('admin-name').innerText = user.displayName;
+                document.getElementById('admin-photo').src = user.photoURL;
+                initData();
             } else {
-                document.getElementById('login-section').classList.remove('hidden');
-                document.getElementById('admin-content').classList.add('hidden');
-                // Reset Captcha on Logout
-                isVerified = false;
-                slider.style.left = '0px';
-                track.style.width = '0px';
-                slider.classList.remove('captcha-success');
-                slider.innerHTML = '<i class="fas fa-angles-right"></i>';
-                loginBtn.disabled = true;
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('admin-panel').classList.add('hidden');
             }
-        });
-
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            try {
-                await auth.signInWithEmailAndPassword(
-                    document.getElementById('login-email').value,
-                    document.getElementById('login-password').value
-                );
-            } catch (err) { showToast(err.message, "red"); }
         });
 
         function logout() { auth.signOut(); }
 
-        // 5. DATA SYNC
-        let materials = [];
-        let isEditing = false;
-
-        function initRealtime() {
+        // --- CORE FUNCTIONS ---
+        function initData() {
             db.collection("materials").orderBy("timestamp", "desc").onSnapshot(snap => {
                 materials = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
-                renderAll();
+                updateDashboard();
+                renderManageGrid();
             });
         }
 
-        function renderAll() {
-            // Update Dashboard Stats
-            document.getElementById('stat-total-materials').innerText = materials.length;
-            document.getElementById('stat-total-views').innerText = materials.reduce((a,b)=>a+(b.views||0),0);
-            document.getElementById('stat-total-downloads').innerText = materials.reduce((a,b)=>a+(b.downloads||0),0);
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+        }
 
-            // Render Recent Table
-            document.getElementById('recent-uploads-body').innerHTML = materials.slice(0,5).map(m => `
-                <tr class="border-b border-slate-800/50"><td class="p-4">${m.title}</td><td class="p-4 text-blue-400 text-sm">${m.category}</td></tr>
-            `).join('');
-
-            // Render Grid
-            renderGrid(materials);
+        function showSection(id) {
+            document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden'));
+            document.getElementById('section-' + id).classList.remove('hidden');
             
-            // Render Analytics
-            document.getElementById('analytics-table-body').innerHTML = materials.map(m => `
-                <tr class="border-b border-slate-800/50"><td class="p-4">${m.title}</td><td class="p-4 text-orange-400 font-bold">${m.views||0}</td><td class="p-4 text-emerald-400 font-bold">${m.downloads||0}</td></tr>
-            `).join('');
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            const titles = { 'dashboard': 'Overview', 'add': isEditing ? 'Edit Material' : 'Add Material', 'manage': 'Manage Materials' };
+            document.getElementById('page-title').innerText = titles[id];
+
+            if (window.innerWidth < 1024) toggleSidebar(); // Mobile auto-hide
+            if (id !== 'add') resetForm();
         }
 
-        function renderGrid(data) {
-            document.getElementById('materials-grid').innerHTML = data.map(m => `
-                <div class="glass rounded-xl overflow-hidden">
-                    <img src="${m.thumbnail}" class="w-full h-32 object-cover">
-                    <div class="p-4">
-                        <h4 class="font-bold truncate">${m.title}</h4>
-                        <div class="flex space-x-2 mt-3">
-                            <button onclick="editMaterial('${m.id}')" class="flex-1 bg-slate-700 py-1 rounded">Edit</button>
-                            <button onclick="deleteMaterial('${m.id}')" class="px-3 bg-red-900/30 text-red-500 rounded"><i class="fas fa-trash"></i></button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+        function resetForm() {
+            isEditing = false;
+            document.getElementById('material-form').reset();
+            document.getElementById('edit-id').value = '';
+            document.getElementById('btn-text').innerText = "Publish Material";
         }
 
+        // --- CRUD ---
         document.getElementById('material-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('btn-submit');
+            const btn = document.getElementById('submit-btn');
+            const loader = document.getElementById('loader');
+            
             btn.disabled = true;
-            document.getElementById('loader').classList.remove('hidden');
+            loader.classList.remove('hidden');
 
-            const payload = {
+            const data = {
                 title: document.getElementById('m-title').value,
-                category: document.getElementById('m-category').value,
-                type: document.getElementById('m-type').value,
+                format: document.getElementById('m-format').value,
+                year: document.getElementById('m-year').value,
                 link: document.getElementById('m-link').value,
                 thumbnail: document.getElementById('m-thumbnail').value,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
 
             try {
-                if(isEditing) {
-                    await db.collection("materials").doc(document.getElementById('edit-id').value).update(payload);
-                    showToast("Updated!");
+                if (isEditing) {
+                    await db.collection("materials").doc(document.getElementById('edit-id').value).update(data);
+                    showToast("Updated successfully!");
                 } else {
-                    payload.views = 0; payload.downloads = 0;
-                    await db.collection("materials").add(payload);
-                    showToast("Added!");
+                    data.views = 0;
+                    data.downloads = 0;
+                    await db.collection("materials").add(data);
+                    showToast("Published successfully!");
                 }
-                showSection('manage-materials');
-            } catch(e) { showToast(e.message, "red"); }
-            finally { 
-                btn.disabled = false; 
-                document.getElementById('loader').classList.add('hidden');
+                showSection('manage');
+            } catch (err) {
+                showToast(err.message, "red");
+            } finally {
+                btn.disabled = false;
+                loader.classList.add('hidden');
             }
         });
 
         async function deleteMaterial(id) {
-            if(confirm("Delete this?")) await db.collection("materials").doc(id).delete();
+            if(confirm("Are you sure? This cannot be undone.")) {
+                await db.collection("materials").doc(id).delete();
+                showToast("Deleted successfully!");
+            }
         }
 
         function editMaterial(id) {
             const m = materials.find(x => x.id === id);
             isEditing = true;
+            showSection('add');
             document.getElementById('edit-id').value = id;
             document.getElementById('m-title').value = m.title;
+            document.getElementById('m-format').value = m.format;
+            document.getElementById('m-year').value = m.year;
             document.getElementById('m-link').value = m.link;
             document.getElementById('m-thumbnail').value = m.thumbnail;
-            document.getElementById('submit-text').innerText = "Update Material";
-            showSection('add-material');
+            document.getElementById('btn-text').innerText = "Update Changes";
         }
 
-        function filterMaterials() {
-            const q = document.getElementById('search-input').value.toLowerCase();
-            renderGrid(materials.filter(m => m.title.toLowerCase().includes(q)));
+        // --- UI RENDERING ---
+        function updateDashboard() {
+            document.getElementById('stat-count').innerText = materials.length;
+            document.getElementById('stat-views').innerText = materials.reduce((a, b) => a + (b.views || 0), 0);
+            document.getElementById('stat-downloads').innerText = materials.reduce((a, b) => a + (b.downloads || 0), 0);
+
+            const recent = materials.slice(0, 4);
+            document.getElementById('recent-list').innerHTML = recent.map(m => `
+                <div class="flex items-center justify-between p-4 bg-slate-800/40 rounded-2xl">
+                    <div class="flex items-center gap-4">
+                        <img src="${m.thumbnail}" class="w-12 h-12 rounded-lg object-cover">
+                        <div>
+                            <h4 class="font-medium text-sm">${m.title}</h4>
+                            <p class="text-xs text-slate-500">${m.format} • ${m.year}</p>
+                        </div>
+                    </div>
+                    <span class="text-xs text-blue-400 font-bold">LIVE</span>
+                </div>
+            `).join('');
         }
 
-        function showToast(msg, col="blue") {
+        function renderManageGrid() {
+            const query = document.getElementById('search').value.toLowerCase();
+            const filtered = materials.filter(m => m.title.toLowerCase().includes(query));
+            
+            document.getElementById('manage-grid').innerHTML = filtered.map(m => `
+                <div class="glass rounded-3xl overflow-hidden group">
+                    <div class="h-40 relative">
+                        <img src="${m.thumbnail}" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent"></div>
+                        <span class="absolute bottom-3 left-3 bg-blue-600 text-[10px] font-bold px-2 py-1 rounded-md">${m.format}</span>
+                    </div>
+                    <div class="p-5">
+                        <h4 class="font-bold truncate mb-4">${m.title} (${m.year})</h4>
+                        <div class="flex gap-2">
+                            <button onclick="editMaterial('${m.id}')" class="flex-1 bg-slate-700 hover:bg-slate-600 py-2 rounded-xl text-xs transition">Edit</button>
+                            <button onclick="deleteMaterial('${m.id}')" class="px-4 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white py-2 rounded-xl text-xs transition">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showToast(msg, color = "blue") {
             const t = document.getElementById('toast');
             document.getElementById('toast-msg').innerText = msg;
-            t.style.borderLeftColor = col === "blue" ? "#3b82f6" : "#ef4444";
-            t.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 3000);
+            t.style.borderLeftColor = color === "blue" ? "#3b82f6" : "#ef4444";
+            t.classList.remove('translate-y-32', 'opacity-0');
+            setTimeout(() => t.classList.add('translate-y-32', 'opacity-0'), 3000);
         }
     </script>
 </body>
